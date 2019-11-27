@@ -16,6 +16,7 @@ import numpy as np
 import torch.nn as nn
 import torch.utils.data as Data
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class Execution:
     def __init__(self, __C):
@@ -48,7 +49,7 @@ class Execution:
             token_size,
             ans_size
         )
-        net.cuda()
+        net.to(device)
         net.train()
 
         # Define the multi-gpu training if needed
@@ -56,8 +57,8 @@ class Execution:
             net = nn.DataParallel(net, device_ids=self.__C.DEVICES)
 
         # Define the binary cross entropy loss
-        # loss_fn = torch.nn.BCELoss(size_average=False).cuda()
-        loss_fn = torch.nn.BCELoss(reduction='sum').cuda()
+        # loss_fn = torch.nn.BCELoss(size_average=False).to(device)
+        loss_fn = torch.nn.BCELoss(reduction='sum').to(device)
 
         # Load checkpoint if resume training
         if self.__C.RESUME:
@@ -153,9 +154,9 @@ class Execution:
 
                 optim.zero_grad()
 
-                img_feat_iter = img_feat_iter.cuda()
-                ques_ix_iter = ques_ix_iter.cuda()
-                ans_iter = ans_iter.cuda()
+                img_feat_iter = img_feat_iter.to(device)
+                ques_ix_iter = ques_ix_iter.to(device)
+                ans_iter = ans_iter.to(device)
 
                 for accu_step in range(self.__C.GRAD_ACCU_STEPS):
 
@@ -297,7 +298,10 @@ class Execution:
         if state_dict is None:
             val_ckpt_flag = True
             print('Loading ckpt {}'.format(path))
-            state_dict = torch.load(path)['state_dict']
+            if torch.cuda.is_available():
+                state_dict = torch.load(path)['state_dict']
+            else:
+                state_dict = torch.load(path, map_location={'cuda:0': 'cpu'})['state_dict']
             print('Finish!')
 
         # Store the prediction list
@@ -310,13 +314,15 @@ class Execution:
         ans_size = dataset.ans_size
         pretrained_emb = dataset.pretrained_emb
 
+        print(data_size,token_size,ans_size,pretrained_emb.shape)
+
         net = Net(
             self.__C,
             pretrained_emb,
             token_size,
             ans_size
         )
-        net.cuda()
+        net.to(device)
         net.eval()
 
         if self.__C.N_GPU > 1:
@@ -342,8 +348,8 @@ class Execution:
                 int(data_size / self.__C.EVAL_BATCH_SIZE),
             ), end='          ')
 
-            img_feat_iter = img_feat_iter.cuda()
-            ques_ix_iter = ques_ix_iter.cuda()
+            img_feat_iter = img_feat_iter.to(device)
+            ques_ix_iter = ques_ix_iter.to(device)
 
             pred = net(
                 img_feat_iter,
