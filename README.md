@@ -11,9 +11,6 @@ By using the commonly used bottom-up-attention visual features, a single MCAN mo
 - Edit `core` to allow use on CPU
 - Add script for validation
 
-TODO:
-- Resolve error `size mismatch for embedding.weight: copying a param with shape torch.Size([20572, 300]) from checkpoint, the shape in current model is torch.Size([14613, 300]).`
-
 ## Prerequisites
 
 #### Setup 
