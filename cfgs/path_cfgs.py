@@ -25,7 +25,9 @@ class PATH:
         }
 
         self.QUESTION_PATH = {
+            'train': self.DATASET_PATH + 'v2_OpenEnded_mscoco_train2014_questions.json',
             'val': self.DATASET_PATH + 'v2_OpenEnded_mscoco_val2014_questions.json',
+            'test': self.DATASET_PATH + 'v2_OpenEnded_mscoco_test2015_questions.json',
             'vg': self.DATASET_PATH + 'VG_questions.json',
         }
 
